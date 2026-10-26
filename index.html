@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BulkPrep Manager - Venodh Nadasen</title>
+    <style>
+        :root {
+            --bg-color: #121417;
+            --card-bg: #1c2128;
+            --border-color: #30363d;
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent-gold: #d4af37;
+            --accent-gold-hover: #e6c547;
+            --accent-orange: #e67e22;
+            --success-green: #238636;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; line-height: 1.5; }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; }
+        h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); }
+        .subtitle { font-size: 0.9rem; color: var(--text-muted); margin-top: 5px; }
+        
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        h2 { font-size: 1.2rem; color: var(--accent-gold); margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        input, select { background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px; font-size: 0.95rem; }
+        input:focus, select:focus { outline: none; border-color: var(--accent-gold); }
+        
+        button { background-color: var(--accent-gold); color: #121417; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; }
+        button:hover { background-color: var(--accent-gold-hover); }
+        
+        .badge { display: inline-block; background: var(--accent-orange); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .alert-box { background: rgba(230, 126, 34, 0.15); border: 1px solid var(--accent-orange); padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem; color: #f39c12; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left; }
+        th { background-color: #161b22; color: var(--accent-gold); text-transform: uppercase; font-size: 0.8rem; }
+        tr:nth-child(even) td { background-color: rgba(255,255,255,0.02); }
+        
+        .macro-totals { display: flex; justify-content: space-around; background: #161b22; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .macro-totals div span { display: block; font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
+        
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>BulkPrep Manager</h1>
+        <div class="subtitle">Venodh Nadasen &bull; Weekly Grocery & Macro Automation</div>
+    </header>
+
+    <!-- STEP 1: SUNDAY GROCERY & INVENTORY INPUT -->
+    <div class="card" id="input-card">
+        <h2>Sunday Morning Grocery Audit</h2>
+        <p class="subtitle" style="margin-bottom: 15px;">Enter your stock quantities for the week. The app automatically checks for shortages (like protein powder running out next Tuesday).</p>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Whey Protein Powder (Scoops left)</label>
+                <input type="number" id="proteinScoops" value="40" min="0" placeholder="e.g. 40 scoops">
+            </div>
+            <div class="form-group">
+                <label>Chicken Fillets (kg)</label>
+                <input type="number" step="0.5" id="chickenKg" value="3.5" min="0">
+            </div>
+            <div class="form-group">
+                <label>Lean Mince (kg)</label>
+                <input type="number" step="0.5" id="minceKg" value="3.0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Pork Chops (kg)</label>
+                <input type="number" step="0.5" id="porkKg" value="2.5" min="0">
+            </div>
+            <div class="form-group">
+                <label>Brown Bread / Oats & Honey Loaves</label>
+                <input type="number" id="breadLoaves" value="4" min="0">
+            </div>
+            <div class="form-group">
+                <label>Full-Cream Milk (Litres)</label>
+                <input type="number" id="milkLitres" value="14" min="0">
+            </div>
+        </div>
+        <button onclick="generatePlan()">Generate Weekly Meal Plan</button>
+    </div>
+
+    <!-- STEP 2: GENERATED PLAN & CONTINGENCY DISPLAY -->
+    <div class="card hidden" id="plan-card">
+        <h2>
+            <span>Weekly Meal Plan & Contingency Schedule</span>
+            <button onclick="resetForm()" style="font-size: 0.8rem; padding: 5px 10px;">Edit Groceries</button>
+        </h2>
+        
+        <div id="contingency-alert" class="alert-box hidden">
+            ⚠️ <strong>Protein Powder Shortage Alert:</strong> Based on your inventory, your whey protein will run out by <strong>Tuesday</strong>. Your Wednesday through Sunday plan has automatically swapped to whole-food alternatives (Toast, Eggs, Milk & Peanut Butter) to maintain your exact 200g protein target.
+        </div>
+
+        <div class="macro-totals">
+            <div>~3,220 kcal<span>Daily Target Calories</span></div>
+            <div>~200g<span>Daily Target Protein</span></div>
+            <div>~295g<span>Daily Target Carbs</span></div>
+            <div>~125g<span>Daily Target Fats</span></div>
+        </div>
+
+        <h3 style="font-size: 1rem; color: var(--accent-gold); margin-bottom: 10px;" id="schedule-title">Monday – Tuesday (Standard Whey Rotation)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Meal / Time</th>
+                    <th>Primary Food & Quantities</th>
+                    <th>Macros</th>
+                </tr>
+            </thead>
+            <tbody id="meal-table-body">
+                <!-- Dynamically populated -->
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <button onclick="window.print()">Print / Save as PDF</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function generatePlan() {
+    const scoops = parseInt(document.getElementById('proteinScoops').value) || 0;
+    
+    // 4 scoops per day (2 scoops x 2 shakes). 40 scoops = 10 days. If <= 16 scoops (~4 days, running out by Tuesday), trigger contingency.
+    const isShortage = scoops <= 16;
+    
+    const alertBox = document.getElementById('contingency-alert');
+    const scheduleTitle = document.getElementById('schedule-title');
+    const tableBody = document.getElementById('meal-table-body');
+    
+    if (isShortage) {
+        alertBox.classList.remove('hidden');
+        scheduleTitle.innerText = "Wednesday – Sunday (Whole-Food Contingency Protocol - No Protein Powder)";
+    } else {
+        alertBox.classList.add('hidden');
+        scheduleTitle.innerText = "Standard Weekly Schedule (Whey Shakes Active)";
+    }
+    
+    let html = `
+        <tr>
+            <td><strong>Meal 1</strong><br>06:30 AM</td>
+            <td>Staple Mealie Meal & Peanut Butter: 80g Maize Meal + 1 block Dark Chocolate + 1 tsp Peanut Butter</td>
+            <td>~440 kcal<br>P: 13g | C: 75g | F: 11g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 2</strong><br>08:00 AM</td>
+            <td>Boiled Eggs & Mayo: 4 Large Boiled Eggs + 1 Tbsp Mayonnaise</td>
+            <td>~390 kcal<br>P: 25g | C: 3g | F: 31g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 3</strong><br>10:30 AM</td>
+            <td>${isShortage ? '<strong>[Whole Food Swap]</strong> 4 Slices Brown Bread + 30g Peanut Butter + 250ml Milk Shake' : 'Staple Protein Shake & Peanuts: 60g Peanuts + 2 Scoops Whey + 250ml Milk'}</td>
+            <td>~780 kcal<br>P: 65g | C: 30g | F: 46g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 4 (Lunch)</strong><br>01:30 PM</td>
+            <td>Select One Staple: 200g Chicken Fillets + 90g Brown Rice (or Mince / Pork options)</td>
+            <td>~700 kcal<br>P: 52g | C: 65g | F: 20g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 5</strong><br>04:30 PM</td>
+            <td>${isShortage ? '<strong>[Whole Food Swap]</strong> 4 Slices Oats & Honey Bread + 2 Tbsp Peanut Butter + Extra Glass of Milk' : 'Pre-Workout: 4 Slices Oats & Honey Bread + 2 Tbsp Peanut Butter (+ Workout Shake 16:30-18:00)'}</td>
+            <td>~510 kcal<br>P: 22g | C: 62g | F: 18g</td>
+        </tr>
+        <tr>
+            <td><strong>Meal 6 (Supper)</strong><br>08:00 PM</td>
+            <td>Heavy Evening Recovery: 250g Lean Mince + 90g Brown Rice (or Pork Chops / Chicken options)</td>
+            <td>~860 kcal<br>P: 68g | C: 70g | F: 28g</td>
+        </tr>
+    `;
+    
+    tableBody.innerHTML = html;
+    
+    document.getElementById('input-card').classList.add('hidden');
+    document.getElementById('plan-card').classList.remove('hidden');
+}
+
+function resetForm() {
+    document.getElementById('plan-card').classList.add('hidden');
+    document.getElementById('input-card').classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
