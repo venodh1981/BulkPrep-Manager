@@ -87,9 +87,9 @@
                 <div class="form-group">
                     <label>Goal Mode</label>
                     <select id="mealGoal">
-                        <option value="bulke">Bulking (+ Surplus)</option>
+                        <option value="bulking">Bulking (+ Surplus)</option>
                         <option value="maintenance">Maintenance / Recovery</option>
-                        <option value="cut">Cutting (- Deficit)</option>
+                        <option value="cutting">Cutting (- Deficit)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -134,7 +134,7 @@
                 <thead>
                     <tr>
                         <th>Meal / Time</th>
-                        <th>Primary Food & Quantities</th>
+                        <th>Primary Food & Quantities (Scaled)</th>
                         <th>Macros</th>
                     </tr>
                 </thead>
@@ -200,9 +200,13 @@ function generateMealPlan() {
     const scoops = parseInt(document.getElementById('proteinScoops').value) || 0;
     const mode = document.getElementById('mealGoal').value;
     
+    // Scale macro numbers based on target calories
+    let carbs = Math.round((cals * 0.36) / 4);
+    let fats = Math.round((cals * 0.35) / 9);
+    
     document.getElementById('disp-cals').innerText = cals;
-    document.getElementById('disp-carbs').innerText = mode === 'cut' ? '210' : (mode === 'maintenance' ? '250' : '295');
-    document.getElementById('disp-fats').innerText = mode === 'cut' ? '85g' : (mode === 'maintenance' ? '105g' : '125g');
+    document.getElementById('disp-carbs').innerText = carbs;
+    document.getElementById('disp-fats').innerText = fats + 'g';
 
     const isShortage = scoops <= 12;
     const alertBox = document.getElementById('contingency-alert');
@@ -212,12 +216,18 @@ function generateMealPlan() {
     } else {
         alertBox.classList.add('hidden');
     }
+
+    // Scale starch quantities dynamically based on calorie target relative to 3220 baseline
+    let scaleFactor = cals / 3220;
+    let riceGrams = Math.round(90 * scaleFactor);
+    let maizeGrams = Math.round(80 * scaleFactor);
+    let breadSlices = cals < 2500 ? 3 : 4;
     
     let html = `
         <tr>
             <td><strong>Meal 1</strong><br>06:30 AM</td>
-            <td>Staple Mealie Meal & Peanut Butter: 80g Maize Meal + 1 block Dark Chocolate + 1 tsp Peanut Butter</td>
-            <td>~440 kcal<br>P: 13g | C: 75g | F: 11g</td>
+            <td>Staple Mealie Meal & Peanut Butter: ${maizeGrams}g Maize Meal + 1 block Dark Chocolate + 1 tsp Peanut Butter</td>
+            <td>~${Math.round(440 * scaleFactor)} kcal<br>P: 13g | C: ${Math.round(75 * scaleFactor)}g | F: ${Math.round(11 * scaleFactor)}g</td>
         </tr>
         <tr>
             <td><strong>Meal 2</strong><br>08:00 AM</td>
@@ -226,23 +236,23 @@ function generateMealPlan() {
         </tr>
         <tr>
             <td><strong>Meal 3</strong><br>10:30 AM</td>
-            <td>${isShortage ? '<strong>[Whole Food Swap]</strong> 4 Slices Brown Bread + 30g Peanut Butter + 250ml Milk Shake' : 'Staple Protein Shake & Peanuts: 60g Peanuts + 2 Scoops Whey + 250ml Milk'}</td>
-            <td>~780 kcal<br>P: 65g | C: 30g | F: 46g</td>
+            <td>${isShortage ? `<strong>[Whole Food Swap]</strong> ${breadSlices} Slices Brown Bread + 30g Peanut Butter + 250ml Milk Shake` : 'Staple Protein Shake & Peanuts: 60g Peanuts + 2 Scoops Whey + 250ml Milk'}</td>
+            <td>~${isShortage ? '650' : '780'} kcal<br>P: 65g | C: ${isShortage ? '45' : '30'}g | F: ${isShortage ? '32' : '46'}g</td>
         </tr>
         <tr>
             <td><strong>Meal 4 (Lunch)</strong><br>01:30 PM</td>
-            <td>Select One Staple: 200g Chicken Fillets + 90g Brown Rice (or Mince / Pork options)</td>
-            <td>~700 kcal<br>P: 52g | C: 65g | F: 20g</td>
+            <td>Select One Staple: 200g Chicken Fillets + ${riceGrams}g Brown Rice (or Mince / Pork options)</td>
+            <td>~${Math.round(700 * scaleFactor)} kcal<br>P: 52g | C: ${Math.round(65 * scaleFactor)}g | F: ${Math.round(20 * scaleFactor)}g</td>
         </tr>
         <tr>
             <td><strong>Meal 5</strong><br>04:30 PM</td>
-            <td>${isShortage ? '<strong>[Whole Food Swap]</strong> 4 Slices Oats & Honey Bread + 2 Tbsp Peanut Butter + Extra Glass of Milk' : 'Pre-Workout: 4 Slices Oats & Honey Bread + 2 Tbsp Peanut Butter (+ Workout Shake)'}</td>
-            <td>~510 kcal<br>P: 22g | C: 62g | F: 18g</td>
+            <td>${isShortage ? `<strong>[Whole Food Swap]</strong> ${breadSlices} Slices Oats & Honey Bread + 2 Tbsp Peanut Butter` : `Pre-Workout: ${breadSlices} Slices Oats & Honey Bread + 2 Tbsp Peanut Butter (+ Workout Shake)`}</td>
+            <td>~${Math.round(510 * scaleFactor)} kcal<br>P: 22g | C: ${Math.round(62 * scaleFactor)}g | F: ${Math.round(18 * scaleFactor)}g</td>
         </tr>
         <tr>
             <td><strong>Meal 6 (Supper)</strong><br>08:00 PM</td>
-            <td>Heavy Evening Recovery: 250g Lean Mince + 90g Brown Rice (or Pork Chops / Chicken options)</td>
-            <td>~860 kcal<br>P: 68g | C: 70g | F: 28g</td>
+            <td>Heavy Evening Recovery: 250g Lean Mince + ${riceGrams}g Brown Rice (or Pork Chops / Chicken options)</td>
+            <td>~${Math.round(860 * scaleFactor)} kcal<br>P: 68g | C: ${Math.round(70 * scaleFactor)}g | F: ${Math.round(28 * scaleFactor)}g</td>
         </tr>
     `;
     
@@ -313,9 +323,5 @@ function generateWorkoutPlan() {
 
 function resetWorkoutForm() {
     document.getElementById('workout-plan-card').classList.add('hidden');
-    document.getElementById('workout-input-card').classList.remove('hidden');
-}
-</script>
-
-</body>
-</html>
+    document.getElementById('workout-input-card').classList.add('hidden'); // Fixed toggle
+    document.getElementById('workout-input-card').classList.r
