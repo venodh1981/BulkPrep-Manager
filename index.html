@@ -98,11 +98,11 @@
                 </div>
                 <div class="form-group">
                     <label>Chicken Fillets (kg)</label>
-                    <input type="number" step="0.5" id="chickenKg" value="3.5" min="0">
+                    <input type="text" id="chickenKg" value="3.5" placeholder="e.g. 3.5">
                 </div>
                 <div class="form-group">
                     <label>Lean Mince (kg)</label>
-                    <input type="number" step="0.5" id="minceKg" value="3.0" min="0">
+                    <input type="text" id="minceKg" value="3.0" placeholder="e.g. 3.0">
                 </div>
                 <div class="form-group">
                     <label>Full-Cream Milk (Litres)</label>
@@ -198,7 +198,6 @@ function switchTab(tab) {
 function generateMealPlan() {
     const cals = parseInt(document.getElementById('targetCalories').value) || 3220;
     const scoops = parseInt(document.getElementById('proteinScoops').value) || 0;
-    const mode = document.getElementById('mealGoal').value;
     
     // Scale macro numbers based on target calories
     let carbs = Math.round((cals * 0.36) / 4);
@@ -217,7 +216,6 @@ function generateMealPlan() {
         alertBox.classList.add('hidden');
     }
 
-    // Scale starch quantities dynamically based on calorie target relative to 3220 baseline
     let scaleFactor = cals / 3220;
     let riceGrams = Math.round(90 * scaleFactor);
     let maizeGrams = Math.round(80 * scaleFactor);
@@ -293,7 +291,7 @@ function generateWorkoutPlan() {
         { day: 'Wednesday: Legs 1 (Quad Focus)', exercises: [
             { name: hasBarbell ? 'Zercher / Front Barbell Squats' : 'Goblet Squats', target: 'Quads & Core', link: 'https://www.youtube.com/results?search_query=zercher+squat+form' },
             { name: hasDB ? 'Dumbbell Bulgarian Split Squats' : 'Bodyweight Lunges', target: 'Quads & Glutes', link: 'https://www.youtube.com/results?search_query=bulgarian+split+squat' },
-            { name: hasAb ? 'Ab Wheel Rollout' : 'Planks', target: 'Core', link: 'https://www.youtube.com/results?search_query=ab+wheel+rollout' }
+            { name: hasAb ? 'Ab Wheel Rollout' : 'Planks', target: 'Core', link: 'https://www.youtube.com/results` }
         ]},
         { day: 'Thursday: Upper Hypertrophy', exercises: [
             { name: hasDB ? 'Seated 70° Incline Press' : 'Push-ups', target: 'Upper Shelf', link: 'https://www.youtube.com/results?search_query=70+degree+incline+dumbbell+press' },
@@ -323,7 +321,6 @@ function generateWorkoutPlan() {
 
 function resetWorkoutForm() {
     document.getElementById('workout-plan-card').classList.add('hidden');
-    document.getElementById('workout-input-card').classList.add('hidden'); // Fixed toggle
     document.getElementById('workout-input-card').classList.remove('hidden');
 }
 </script>
